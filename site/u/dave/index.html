@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DAVE — STRAPPED-IN</title>
+<meta name="description" content="Leave a quick review for your snowboard lesson with Dave at Cardrona.">
+<style>
+  /* Strapped-In visual language — caps everywhere, hierarchy via size/weight/colour. */
+  :root {
+    --bg: #0f1115;
+    --card: #14161c;
+    --card2: #161922;
+    --line: #20242b;
+    --line2: #2e333b;
+    --tx: #e8eaed;
+    --mut: #8b8f98;
+    --mut2: #6c7079;
+    --dim: #5a5e66;
+    --teal: #1d9e75;
+    --tealT: #7fd9bd;
+    --tealBg: #13241d;
+    --tealLn: #1d4d3c;
+    --amberT: #f0b96b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-transform: uppercase;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 430px;
+    padding: 40px 22px calc(34px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .eyebrow { font-size: 11px; color: var(--tealT); letter-spacing: .18em; font-weight: 500; }
+  .name { font-size: 26px; font-weight: 600; letter-spacing: .09em; margin-top: 12px; }
+  .sub { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 7px; }
+
+  .avatar {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: var(--tealBg);
+    border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 600; color: var(--tealT); letter-spacing: .06em;
+    margin-bottom: 18px;
+  }
+
+  .stars { display: flex; gap: 10px; margin-top: 30px; }
+  .stars button {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    font-size: 34px; line-height: 1; color: var(--line2);
+    transition: color .12s ease, transform .12s ease;
+  }
+  .stars button.lit { color: var(--amberT); }
+  .stars button:active { transform: scale(1.15); }
+  .stars-hint { font-size: 10px; color: var(--mut2); letter-spacing: .12em; margin-top: 12px; }
+
+  .btn {
+    display: block; width: 100%; text-align: center; text-decoration: none;
+    border-radius: 14px; padding: 16px 18px; margin-top: 14px;
+    font-size: 13px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary { background: var(--teal); color: #06130d; }
+  .btn-primary:active { filter: brightness(1.1); }
+  .btn-ghost {
+    background: var(--card); color: var(--tx);
+    border: 1px solid var(--line2);
+  }
+  .btn-ghost:active { background: var(--card2); }
+  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+
+  .actions { align-self: stretch; margin-top: 30px; }
+  .divider {
+    align-self: stretch; display: flex; align-items: center; gap: 12px;
+    margin-top: 26px; color: var(--dim); font-size: 10px; letter-spacing: .16em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .foot {
+    margin-top: auto; padding-top: 40px;
+    font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
+  }
+  .foot .brand { color: var(--mut2); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="avatar" id="avatar"></div>
+  <div class="eyebrow">How was your lesson?</div>
+  <div class="name" id="name"></div>
+  <div class="sub" id="resort"></div>
+
+  <div class="stars" id="stars" aria-label="Tap a star rating"></div>
+  <div class="stars-hint">Tap to rate — it opens the review form</div>
+
+  <div class="actions">
+    <a class="btn btn-primary" id="reviewBtn" href="#">Leave a review</a>
+
+    <div class="divider" id="tipDivider">Enjoyed it?</div>
+    <a class="btn btn-ghost" id="tipBtn" href="#">Say thanks with a tip</a>
+    <div class="btn-note" id="tipNote">100% goes to your instructor</div>
+  </div>
+
+  <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
+</div>
+
+<script>
+  // ---- CONFIG — the only block you should need to edit -------------------
+  var PROFILE = {
+    name: 'Dave',
+    resort: 'Cardrona · Snowboard',
+    // Google Form for reviews. If the form's first question is a 1–5 linear
+    // scale, add its entry id below so a tapped star pre-fills it.
+    reviewFormUrl: 'REPLACE_WITH_GOOGLE_FORM_URL',
+    reviewStarsEntryId: '',            // e.g. 'entry.123456789' (optional)
+    // Stripe Payment Link for tips. Leave as REPLACE_… and the tip section hides.
+    tipUrl: 'REPLACE_WITH_STRIPE_PAYMENT_LINK'
+  };
+  // ------------------------------------------------------------------------
+
+  var configured = function (v) { return v && v.indexOf('REPLACE_') !== 0; };
+
+  document.getElementById('name').textContent = PROFILE.name;
+  document.getElementById('resort').textContent = PROFILE.resort;
+  document.getElementById('avatar').textContent = PROFILE.name.slice(0, 2);
+  document.title = PROFILE.name.toUpperCase() + ' — STRAPPED-IN';
+
+  function formUrl(stars) {
+    if (!configured(PROFILE.reviewFormUrl)) return '#';
+    var url = PROFILE.reviewFormUrl;
+    if (stars && PROFILE.reviewStarsEntryId) {
+      url += (url.indexOf('?') === -1 ? '?' : '&') + 'usp=pp_url&' +
+             PROFILE.reviewStarsEntryId + '=' + stars;
+    }
+    return url;
+  }
+
+  // Review button
+  var reviewBtn = document.getElementById('reviewBtn');
+  reviewBtn.href = formUrl(0);
+  if (!configured(PROFILE.reviewFormUrl)) {
+    reviewBtn.textContent = 'Review form coming soon';
+    reviewBtn.style.opacity = '0.45';
+    reviewBtn.style.pointerEvents = 'none';
+  }
+
+  // Stars — light up on tap, then follow through to the form.
+  var starsWrap = document.getElementById('stars');
+  for (var i = 1; i <= 5; i++) {
+    (function (n) {
+      var b = document.createElement('button');
+      b.textContent = '★';
+      b.setAttribute('aria-label', n + ' star' + (n > 1 ? 's' : ''));
+      b.addEventListener('click', function () {
+        var kids = starsWrap.children;
+        for (var k = 0; k < kids.length; k++) kids[k].classList.toggle('lit', k < n);
+        if (configured(PROFILE.reviewFormUrl)) {
+          setTimeout(function () { window.location.href = formUrl(n); }, 350);
+        }
+      });
+      starsWrap.appendChild(b);
+    })(i);
+  }
+
+  // Tip section — hidden entirely until a Stripe link is configured.
+  if (configured(PROFILE.tipUrl)) {
+    document.getElementById('tipBtn').href = PROFILE.tipUrl;
+  } else {
+    document.getElementById('tipDivider').style.display = 'none';
+    document.getElementById('tipBtn').style.display = 'none';
+    document.getElementById('tipNote').style.display = 'none';
+  }
+</script>
+</body>
+</html>
