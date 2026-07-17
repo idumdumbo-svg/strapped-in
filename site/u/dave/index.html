@@ -59,7 +59,7 @@
     margin-bottom: 18px;
   }
 
-  .stars { display: flex; gap: 10px; margin-top: 30px; }
+  .stars { display: flex; gap: 10px; margin-top: 28px; }
   .stars button {
     background: none; border: none; cursor: pointer; padding: 4px;
     font-size: 34px; line-height: 1; color: var(--line2);
@@ -69,28 +69,59 @@
   .stars button:active { transform: scale(1.15); }
   .stars-hint { font-size: 10px; color: var(--mut2); letter-spacing: .12em; margin-top: 12px; }
 
+  form { align-self: stretch; margin-top: 22px; }
+  .field {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--line2);
+    border-radius: 14px;
+    color: var(--tx);
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: .04em;
+    padding: 14px 16px;
+    margin-top: 12px;
+    text-transform: none;
+  }
+  .field::placeholder { color: var(--mut2); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
+  .field:focus { outline: none; border-color: var(--tealLn); }
+  textarea.field { min-height: 96px; resize: vertical; }
+
   .btn {
     display: block; width: 100%; text-align: center; text-decoration: none;
     border-radius: 14px; padding: 16px 18px; margin-top: 14px;
     font-size: 13px; font-weight: 600; letter-spacing: .12em;
-    text-transform: uppercase;
+    text-transform: uppercase; font-family: inherit;
+    border: none; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
   .btn-primary { background: var(--teal); color: #06130d; }
   .btn-primary:active { filter: brightness(1.1); }
+  .btn-primary:disabled { background: var(--card2); color: var(--dim); cursor: default; }
   .btn-ghost {
     background: var(--card); color: var(--tx);
     border: 1px solid var(--line2);
   }
   .btn-ghost:active { background: var(--card2); }
   .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+  .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
 
-  .actions { align-self: stretch; margin-top: 30px; }
   .divider {
     align-self: stretch; display: flex; align-items: center; gap: 12px;
     margin-top: 26px; color: var(--dim); font-size: 10px; letter-spacing: .16em;
   }
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .thanks { display: none; flex-direction: column; align-items: center; margin-top: 34px; }
+  .thanks .tick {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--tealBg); border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--tealT); font-size: 28px;
+  }
+  .thanks .big { font-size: 16px; font-weight: 600; letter-spacing: .12em; margin-top: 18px; }
+  .thanks .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 8px; text-align: center; line-height: 1.6; }
+  .tipWrap { align-self: stretch; }
 
   .foot {
     margin-top: auto; padding-top: 40px;
@@ -106,12 +137,28 @@
   <div class="name" id="name"></div>
   <div class="sub" id="resort"></div>
 
-  <div class="stars" id="stars" aria-label="Tap a star rating"></div>
-  <div class="stars-hint">Tap to rate — it opens the review form</div>
+  <!-- review form (hidden after submit) -->
+  <div id="reviewWrap" style="align-self:stretch;display:flex;flex-direction:column;align-items:center;">
+    <div class="stars" id="stars" aria-label="Tap a star rating"></div>
+    <div class="stars-hint" id="starsHint">Tap the stars to rate</div>
 
-  <div class="actions">
-    <a class="btn btn-primary" id="reviewBtn" href="#">Leave a review</a>
+    <form id="reviewForm">
+      <textarea class="field" name="comment" id="comment" placeholder="What stuck with you? (optional)"></textarea>
+      <input class="field" type="text" name="student" id="student" placeholder="Your name (optional)">
+      <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="btn btn-primary" type="submit" id="submitBtn" disabled>Send review</button>
+      <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
+    </form>
+  </div>
 
+  <!-- thank-you state -->
+  <div class="thanks" id="thanks">
+    <div class="tick">✓</div>
+    <div class="big">Thanks for the review</div>
+    <div class="small">It goes straight to your instructor —<br>see you back on the mountain</div>
+  </div>
+
+  <div class="tipWrap">
     <div class="divider" id="tipDivider">Enjoyed it?</div>
     <a class="btn btn-ghost" id="tipBtn" href="#">Say thanks with a tip</a>
     <div class="btn-note" id="tipNote">100% goes to your instructor</div>
@@ -125,10 +172,8 @@
   var PROFILE = {
     name: 'Dave',
     resort: 'Cardrona · Snowboard',
-    // Google Form for reviews. If the form's first question is a 1–5 linear
-    // scale, add its entry id below so a tapped star pre-fills it.
-    reviewFormUrl: 'REPLACE_WITH_GOOGLE_FORM_URL',
-    reviewStarsEntryId: '',            // e.g. 'entry.123456789' (optional)
+    // Formspree endpoint — reviews arrive by email + in the Formspree dashboard.
+    formspree: 'https://formspree.io/f/mbdngeyb',
     // Stripe Payment Link for tips. Leave as REPLACE_… and the tip section hides.
     tipUrl: 'REPLACE_WITH_STRIPE_PAYMENT_LINK'
   };
@@ -141,42 +186,54 @@
   document.getElementById('avatar').textContent = PROFILE.name.slice(0, 2);
   document.title = PROFILE.name.toUpperCase() + ' — STRAPPED-IN';
 
-  function formUrl(stars) {
-    if (!configured(PROFILE.reviewFormUrl)) return '#';
-    var url = PROFILE.reviewFormUrl;
-    if (stars && PROFILE.reviewStarsEntryId) {
-      url += (url.indexOf('?') === -1 ? '?' : '&') + 'usp=pp_url&' +
-             PROFILE.reviewStarsEntryId + '=' + stars;
-    }
-    return url;
-  }
-
-  // Review button
-  var reviewBtn = document.getElementById('reviewBtn');
-  reviewBtn.href = formUrl(0);
-  if (!configured(PROFILE.reviewFormUrl)) {
-    reviewBtn.textContent = 'Review form coming soon';
-    reviewBtn.style.opacity = '0.45';
-    reviewBtn.style.pointerEvents = 'none';
-  }
-
-  // Stars — light up on tap, then follow through to the form.
+  // Stars — rating is required; submit unlocks once one is tapped.
+  var rating = 0;
   var starsWrap = document.getElementById('stars');
+  var submitBtn = document.getElementById('submitBtn');
   for (var i = 1; i <= 5; i++) {
     (function (n) {
       var b = document.createElement('button');
+      b.type = 'button';
       b.textContent = '★';
       b.setAttribute('aria-label', n + ' star' + (n > 1 ? 's' : ''));
       b.addEventListener('click', function () {
+        rating = n;
         var kids = starsWrap.children;
         for (var k = 0; k < kids.length; k++) kids[k].classList.toggle('lit', k < n);
-        if (configured(PROFILE.reviewFormUrl)) {
-          setTimeout(function () { window.location.href = formUrl(n); }, 350);
-        }
+        document.getElementById('starsHint').textContent = n + ' / 5';
+        submitBtn.disabled = false;
       });
       starsWrap.appendChild(b);
     })(i);
   }
+
+  // Submit → Formspree (AJAX, no redirect — thank-you swaps in on this page).
+  document.getElementById('reviewForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!rating) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    document.getElementById('formErr').style.display = 'none';
+
+    fetch(PROFILE.formspree, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instructor: PROFILE.name,
+        rating: rating + ' / 5',
+        comment: document.getElementById('comment').value || '(none)',
+        student: document.getElementById('student').value || '(anonymous)'
+      })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('send failed');
+      document.getElementById('reviewWrap').style.display = 'none';
+      document.getElementById('thanks').style.display = 'flex';
+    }).catch(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send review';
+      document.getElementById('formErr').style.display = 'block';
+    });
+  });
 
   // Tip section — hidden entirely until a Stripe link is configured.
   if (configured(PROFILE.tipUrl)) {
