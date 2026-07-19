@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>STRAPPED-IN</title>
+<meta name="description" content="Leave a quick review for your snowsports lesson.">
+<style>
+  /* Strapped-In visual language — caps everywhere, hierarchy via size/weight/colour. */
+  :root {
+    --bg: #0f1115;
+    --card: #14161c;
+    --card2: #161922;
+    --line: #20242b;
+    --line2: #2e333b;
+    --tx: #e8eaed;
+    --mut: #8b8f98;
+    --mut2: #6c7079;
+    --dim: #5a5e66;
+    --teal: #1d9e75;
+    --tealT: #7fd9bd;
+    --tealBg: #13241d;
+    --tealLn: #1d4d3c;
+    --amberT: #f0b96b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-transform: uppercase;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 430px;
+    padding: 40px 22px calc(34px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .eyebrow { font-size: 11px; color: var(--tealT); letter-spacing: .18em; font-weight: 500; }
+  .name { font-size: 26px; font-weight: 600; letter-spacing: .09em; margin-top: 12px; }
+  .sub { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 7px; }
+
+  .avatar {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: var(--tealBg);
+    border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 600; color: var(--tealT); letter-spacing: .06em;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 14px; }
+  .chip {
+    font-size: 9.5px; letter-spacing: .12em; color: var(--tealT);
+    background: var(--tealBg); border: 1px solid var(--tealLn);
+    border-radius: 999px; padding: 6px 12px;
+  }
+  .chip.dim { color: var(--mut); background: var(--card); border-color: var(--line2); }
+
+  .stars { display: flex; gap: 10px; margin-top: 28px; }
+  .stars button {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    font-size: 34px; line-height: 1; color: var(--line2);
+    transition: color .12s ease, transform .12s ease;
+  }
+  .stars button.lit { color: var(--amberT); }
+  .stars button:active { transform: scale(1.15); }
+  .stars-hint { font-size: 10px; color: var(--mut2); letter-spacing: .12em; margin-top: 12px; }
+
+  form { align-self: stretch; margin-top: 22px; }
+  .field {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--line2);
+    border-radius: 14px;
+    color: var(--tx);
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: .04em;
+    padding: 14px 16px;
+    margin-top: 12px;
+    text-transform: none;
+  }
+  .field::placeholder { color: var(--mut2); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
+  .field:focus { outline: none; border-color: var(--tealLn); }
+  textarea.field { min-height: 96px; resize: vertical; }
+
+  .btn {
+    display: block; width: 100%; text-align: center; text-decoration: none;
+    border-radius: 14px; padding: 16px 18px; margin-top: 14px;
+    font-size: 13px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; font-family: inherit;
+    border: none; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary { background: var(--teal); color: #06130d; }
+  .btn-primary:active { filter: brightness(1.1); }
+  .btn-primary:disabled { background: var(--card2); color: var(--dim); cursor: default; }
+  .btn-ghost {
+    background: var(--card); color: var(--tx);
+    border: 1px solid var(--line2);
+  }
+  .btn-ghost:active { background: var(--card2); }
+  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+  .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
+
+  .divider {
+    align-self: stretch; display: flex; align-items: center; gap: 12px;
+    margin-top: 26px; color: var(--dim); font-size: 10px; letter-spacing: .16em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .thanks { display: none; flex-direction: column; align-items: center; margin-top: 34px; }
+  .thanks .tick {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--tealBg); border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--tealT); font-size: 28px;
+  }
+  .thanks .big { font-size: 16px; font-weight: 600; letter-spacing: .12em; margin-top: 18px; }
+  .thanks .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 8px; text-align: center; line-height: 1.6; }
+  .thanks { align-self: stretch; }
+
+  .socials {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    align-self: stretch; margin-top: 4px;
+  }
+  .social-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--card); color: var(--tx); text-decoration: none;
+    border: 1px solid var(--line2); border-radius: 14px;
+    padding: 14px 10px; font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .social-btn:active { background: var(--card2); }
+  .tipWrap { align-self: stretch; }
+
+  .empty { display: none; flex-direction: column; align-items: center; margin-top: 60px; text-align: center; }
+  .empty .big { font-size: 15px; font-weight: 600; letter-spacing: .14em; }
+  .empty .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 10px; line-height: 1.7; }
+
+  .foot {
+    margin-top: auto; padding-top: 40px;
+    font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
+  }
+  .foot .brand { color: var(--mut2); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="card" style="display:flex;flex-direction:column;align-items:center;align-self:stretch;">
+    <div class="avatar" id="avatar"></div>
+    <div class="eyebrow">How was your lesson?</div>
+    <div class="name" id="name"></div>
+    <div class="sub" id="sub"></div>
+    <div class="chips" id="chips"></div>
+
+    <!-- review form (hidden after submit) -->
+    <div id="reviewWrap" style="align-self:stretch;display:flex;flex-direction:column;align-items:center;">
+      <div class="stars" id="stars" aria-label="Tap a star rating"></div>
+      <div class="stars-hint" id="starsHint">Tap the stars to rate</div>
+
+      <form id="reviewForm">
+        <textarea class="field" name="comment" id="comment" placeholder="What stuck with you? (optional)"></textarea>
+        <input class="field" type="text" name="student" id="student" placeholder="Your name (optional)">
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn btn-primary" type="submit" id="submitBtn" disabled>Send review</button>
+        <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
+      </form>
+    </div>
+
+    <!-- thank-you state -->
+    <div class="thanks" id="thanks">
+      <div class="tick">✓</div>
+      <div class="big">Thanks for the review</div>
+      <div class="small">It goes straight to your instructor —<br>see you back on the mountain</div>
+      <div class="divider" id="socialDivider" style="display:none">Stay in touch</div>
+      <div class="socials" id="socials"></div>
+    </div>
+
+    <div class="tipWrap">
+      <div class="divider" id="tipDivider">Enjoyed it?</div>
+      <a class="btn btn-ghost" id="tipBtn" href="#">Say thanks with a tip</a>
+      <div class="btn-note" id="tipNote">100% goes to your instructor</div>
+    </div>
+  </div>
+
+  <!-- shown when there's no valid profile in the URL -->
+  <div class="empty" id="empty">
+    <div class="big">Strapped-In</div>
+    <div class="small">This card needs to be opened from an<br>instructor's QR code</div>
+  </div>
+
+  <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
+</div>
+
+<script>
+  // The instructor's whole profile arrives in the URL hash as base64url JSON
+  // (packed by the app — profileUrl in store.tsx). Nothing here is hardcoded,
+  // so this one page serves every instructor.
+  function decodeProfile() {
+    try {
+      var h = location.hash.replace(/^#/, '');
+      if (!h) return null;
+      var b64 = h.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var bin = atob(b64);
+      var pct = '';
+      for (var i = 0; i < bin.length; i++) {
+        pct += '%' + ('0' + bin.charCodeAt(i).toString(16)).slice(-2);
+      }
+      var p = JSON.parse(decodeURIComponent(pct));
+      return p && p.n ? p : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = decodeProfile();
+  if (!P) {
+    document.getElementById('card').style.display = 'none';
+    document.getElementById('empty').style.display = 'flex';
+  } else {
+    // Stash the profile for the same-origin thanks page — Stripe's after-payment
+    // redirect can't carry the URL hash, so the thanks page reads this instead.
+    try { localStorage.setItem('strappedin.profile', JSON.stringify(P)); } catch (e) {}
+    render(P);
+  }
+
+  function render(P) {
+    document.title = P.n.toUpperCase() + ' — STRAPPED-IN';
+    document.getElementById('name').textContent = P.n;
+
+    var subBits = [];
+    if (P.r) subBits.push(P.r);
+    if (P.d) subBits.push(P.d);
+    document.getElementById('sub').textContent = subBits.join(' · ');
+
+    // Avatar: photo if provided (falling back to initials if it fails to load).
+    var avatar = document.getElementById('avatar');
+    function initials() { avatar.textContent = P.n.slice(0, 2); }
+    if (P.p) {
+      var img = new Image();
+      img.onload = function () { avatar.textContent = ''; avatar.appendChild(img); };
+      img.onerror = initials;
+      img.src = P.p;
+      img.alt = P.n;
+      initials(); // shown until/unless the photo arrives
+    } else {
+      initials();
+    }
+
+    // Credibility chips: certs + seasons.
+    var chips = document.getElementById('chips');
+    (P.c || []).forEach(function (cert) {
+      var el = document.createElement('span');
+      el.className = 'chip';
+      el.textContent = cert;
+      chips.appendChild(el);
+    });
+    if (P.s) {
+      var el = document.createElement('span');
+      el.className = 'chip dim';
+      el.textContent = P.s + (P.s === 1 ? ' season' : ' seasons') + ' teaching';
+      chips.appendChild(el);
+    }
+
+    // Stars — rating required; submit unlocks once one is tapped.
+    var rating = 0;
+    var starsWrap = document.getElementById('stars');
+    var submitBtn = document.getElementById('submitBtn');
+    for (var i = 1; i <= 5; i++) {
+      (function (n) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = '★';
+        b.setAttribute('aria-label', n + ' star' + (n > 1 ? 's' : ''));
+        b.addEventListener('click', function () {
+          rating = n;
+          var kids = starsWrap.children;
+          for (var k = 0; k < kids.length; k++) kids[k].classList.toggle('lit', k < n);
+          document.getElementById('starsHint').textContent = n + ' / 5';
+          if (P.f) submitBtn.disabled = false;
+        });
+        starsWrap.appendChild(b);
+      })(i);
+    }
+
+    // Review form → the instructor's own endpoint. No endpoint = no form.
+    if (!P.f) {
+      document.getElementById('reviewForm').style.display = 'none';
+      document.getElementById('starsHint').textContent = 'Reviews aren\'t set up yet';
+    }
+    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!rating || !P.f) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      document.getElementById('formErr').style.display = 'none';
+
+      fetch(P.f, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instructor: P.n,
+          resort: P.r || '',
+          rating: rating + ' / 5',
+          comment: document.getElementById('comment').value || '(none)',
+          student: document.getElementById('student').value || '(anonymous)'
+        })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('send failed');
+        document.getElementById('reviewWrap').style.display = 'none';
+        document.getElementById('thanks').style.display = 'flex';
+        showSocials();
+      }).catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send review';
+        document.getElementById('formErr').style.display = 'block';
+      });
+    });
+
+    // Stay-in-touch links — built once, revealed only after a review is sent.
+    function showSocials() {
+      var links = [];
+      if (P.w) links.push({ label: 'WhatsApp', href: 'https://wa.me/' + P.w });
+      if (P.i) links.push({ label: 'Instagram', href: 'https://instagram.com/' + P.i });
+      if (P.e) links.push({ label: 'Email', href: 'mailto:' + P.e });
+      if (P.b) {
+        links.push({
+          label: 'Facebook',
+          href: /^https?:\/\//i.test(P.b) ? P.b : 'https://facebook.com/' + P.b
+        });
+      }
+      if (!links.length) return;
+      document.getElementById('socialDivider').style.display = 'flex';
+      var wrap = document.getElementById('socials');
+      links.forEach(function (l) {
+        var a = document.createElement('a');
+        a.className = 'social-btn';
+        a.textContent = l.label.toUpperCase();
+        a.href = l.href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        wrap.appendChild(a);
+      });
+    }
+
+    // Tip section — hidden without a tip link.
+    if (P.t) {
+      document.getElementById('tipBtn').href = P.t;
+    } else {
+      document.getElementById('tipDivider').style.display = 'none';
+      document.getElementById('tipBtn').style.display = 'none';
+      document.getElementById('tipNote').style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>
