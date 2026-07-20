@@ -113,7 +113,32 @@
     border: 1px solid var(--line2);
   }
   .btn-ghost:active { background: var(--card2); }
+  /* the tip button earns a warmer treatment than a plain ghost button */
+  .btn-tip {
+    background: var(--tealBg); color: var(--tealT);
+    border: 1px solid var(--tealLn);
+  }
+  .btn-tip:active { background: var(--card2); }
+
+  .pay {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    margin-top: 10px;
+    font-size: 9px; letter-spacing: .11em; color: var(--mut2);
+  }
+  .pay-card {
+    width: 20px; height: 13px; flex: none;
+    fill: none; stroke: var(--mut2); stroke-width: 1.5;
+  }
   .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+  .skip {
+    display: block; width: 100%; margin-top: 16px;
+    background: none; border: none; cursor: pointer;
+    color: var(--mut2); font-family: inherit; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase; text-decoration: none; text-align: center;
+    padding: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .skip:active { color: var(--tealT); }
   .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
 
   .divider {
@@ -151,6 +176,19 @@
   .empty .big { font-size: 15px; font-weight: 600; letter-spacing: .14em; }
   .empty .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 10px; line-height: 1.7; }
 
+  /* compact always-visible social row — the links are findable without
+     having to leave a review first */
+  .mini { display: flex; gap: 10px; justify-content: center; margin-top: 34px; }
+  .mini a {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--line2);
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mini a:active { background: var(--card2); }
+  .mini svg { width: 17px; height: 17px; fill: none; stroke: var(--mut); stroke-width: 1.7; }
+  .mini .glyph-f { font-size: 15px; font-weight: 600; color: var(--mut); }
+
   .foot {
     margin-top: auto; padding-top: 40px;
     font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
@@ -178,6 +216,7 @@
         <button class="btn btn-primary" type="submit" id="submitBtn" disabled>Send review</button>
         <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
       </form>
+      <button class="skip" type="button" id="skipReview">Skip — just show me the links</button>
     </div>
 
     <!-- thank-you state -->
@@ -187,12 +226,20 @@
       <div class="small">It goes straight to your instructor —<br>see you back on the mountain</div>
       <div class="divider" id="socialDivider" style="display:none">Stay in touch</div>
       <div class="socials" id="socials"></div>
+      <a class="skip" id="profileLink" href="#" style="display:none">Open my profile page</a>
     </div>
 
     <div class="tipWrap">
       <div class="divider" id="tipDivider">Enjoyed it?</div>
-      <a class="btn btn-ghost" id="tipBtn" href="#">Say thanks with a tip</a>
-      <div class="btn-note" id="tipNote">100% goes to your instructor</div>
+      <a class="btn btn-tip" id="tipBtn" href="#">Say thanks with a tip</a>
+      <div class="pay" id="payRow">
+        <svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">
+          <rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>
+          <path d="M0.75 5.5h22.5"/>
+        </svg>
+        <span id="payText">Apple Pay · Google Pay · Visa · Mastercard</span>
+      </div>
+      <div class="btn-note" id="tipNote">One tap · no account needed · 100% goes to your instructor</div>
     </div>
 
     <!-- lesson report request (shown only if the instructor enabled it) -->
@@ -223,6 +270,8 @@
     <div class="big">Strapped-In</div>
     <div class="small">This card needs to be opened from an<br>instructor's QR code</div>
   </div>
+
+  <div class="mini" id="miniSocials"></div>
 
   <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
 </div>
@@ -338,8 +387,63 @@
       });
     });
 
+    // Payment marks — name the wallet the student's own device actually has,
+    // so the promise matches what they'll see at checkout.
+    var ua = navigator.userAgent || '';
+    var wallet = /iPhone|iPad|iPod|Macintosh/i.test(ua)
+      ? 'Apple Pay'
+      : /Android/i.test(ua)
+        ? 'Google Pay'
+        : 'Apple Pay · Google Pay';
+    document.getElementById('payText').textContent = wallet + ' · Visa · Mastercard';
+
+    // Compact social row at the foot of the card — always available, no review
+    // required. Simple generic glyphs, drawn inline (no external requests).
+    var GLYPH = {
+      w: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4 8.5 8.5 0 0 1-4-1L3 20l1.1-5.4a8.4 8.4 0 0 1-1.1-4.1A8.4 8.4 0 0 1 11.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg>',
+      i: '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+      e: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>',
+      b: '<span class="glyph-f">f</span>',
+    };
+
+    var mini = document.getElementById('miniSocials');
+    [
+      { k: 'w', href: P.w ? 'https://wa.me/' + P.w : null, label: 'WhatsApp' },
+      { k: 'i', href: P.i ? 'https://instagram.com/' + P.i : null, label: 'Instagram' },
+      { k: 'b', href: P.b ? (/^https?:\/\//i.test(P.b) ? P.b : 'https://facebook.com/' + P.b) : null, label: 'Facebook' },
+      { k: 'e', href: P.e ? 'mailto:' + P.e : null, label: 'Email' },
+    ].forEach(function (s) {
+      if (!s.href) return;
+      var a = document.createElement('a');
+      a.href = s.href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.setAttribute('aria-label', s.label);
+      a.innerHTML = GLYPH[s.k];
+      mini.appendChild(a);
+    });
+
+    // Skip the review — go straight to the links. The tip section is already
+    // below and stays visible either way.
+    document.getElementById('skipReview').addEventListener('click', function () {
+      document.getElementById('reviewWrap').style.display = 'none';
+      var t = document.getElementById('thanks');
+      t.style.display = 'flex';
+      t.querySelector('.big').textContent = 'Stay in touch';
+      t.querySelector('.small').innerHTML = 'Catch you on the mountain —<br>here\'s where to find me';
+      showSocials();
+    });
+
     // Stay-in-touch links — built once, revealed only after a review is sent.
     function showSocials() {
+      // A bookmarkable profile page, carrying the same profile in its hash, so
+      // the student can come back to the links (and tip) later.
+      var pl = document.getElementById('profileLink');
+      pl.href = 'thanks/' + location.hash;
+      pl.style.display = 'block';
+      // the full-width buttons take over from the compact foot row
+      document.getElementById('miniSocials').style.display = 'none';
+
       var links = [];
       if (P.w) links.push({ label: 'WhatsApp', href: 'https://wa.me/' + P.w });
       if (P.i) links.push({ label: 'Instagram', href: 'https://instagram.com/' + P.i });
@@ -431,6 +535,7 @@
       document.getElementById('tipDivider').style.display = 'none';
       document.getElementById('tipBtn').style.display = 'none';
       document.getElementById('tipNote').style.display = 'none';
+      document.getElementById('payRow').style.display = 'none';
     }
   }
 </script>

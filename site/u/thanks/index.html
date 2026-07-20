@@ -86,6 +86,18 @@
   }
   .social-btn:active { background: var(--card2); }
 
+  .btn {
+    display: block; width: 100%; text-align: center; text-decoration: none;
+    border-radius: 14px; padding: 16px 18px; margin-top: 14px;
+    font-size: 13px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; font-family: inherit;
+    border: 1px solid var(--line2); background: var(--card); color: var(--tx);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { background: var(--card2); }
+  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+  .tipWrap { align-self: stretch; }
+
   .foot {
     margin-top: auto; padding-top: 44px;
     font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
@@ -105,6 +117,12 @@
 
   <div class="divider" id="socialDivider" style="display:none">Stay in touch</div>
   <div class="socials" id="socials"></div>
+
+  <div class="tipWrap" id="tipWrap" style="display:none">
+    <div class="divider">Enjoyed it?</div>
+    <a class="btn" id="tipBtn" href="#">Say thanks with a tip</a>
+    <div class="btn-note">100% goes to your instructor</div>
+  </div>
 
   <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
 </div>
@@ -148,7 +166,19 @@
     } catch (e) { return null; }
   }
 
-  var P = fromHash() || fromStorage() || FALLBACK;
+  // A hash means we were opened as a PROFILE (the student followed the link
+  // from the card, or a bookmark) — so show the tip option. No hash means we
+  // are Stripe's after-payment redirect: they have just tipped, so don't ask
+  // again, and keep the thank-you headline.
+  var hashProfile = fromHash();
+  var isProfile = !!hashProfile;
+  var P = hashProfile || fromStorage() || FALLBACK;
+
+  if (isProfile) {
+    document.getElementById('headline').textContent = 'Stay in touch';
+    document.querySelector('.small').innerHTML =
+      'Catch you on the mountain —<br>here\'s where to find me';
+  }
 
   document.getElementById('name').textContent = P.n || '';
   document.getElementById('sub').textContent = P.r || '';
@@ -187,6 +217,14 @@
       a.rel = 'noopener';
       wrap.appendChild(a);
     });
+  }
+
+  // Tip — profile visits only, never straight after a payment.
+  if (isProfile && P.t) {
+    var tipBtn = document.getElementById('tipBtn');
+    tipBtn.href = P.t;
+    if (P.tl) tipBtn.textContent = P.tl.toUpperCase();
+    document.getElementById('tipWrap').style.display = 'block';
   }
 </script>
 </body>
