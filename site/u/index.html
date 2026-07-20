@@ -194,6 +194,28 @@
       <a class="btn btn-ghost" id="tipBtn" href="#">Say thanks with a tip</a>
       <div class="btn-note" id="tipNote">100% goes to your instructor</div>
     </div>
+
+    <!-- lesson report request (shown only if the instructor enabled it) -->
+    <div class="tipWrap" id="reportWrap" style="display:none">
+      <div class="divider">Want a recap?</div>
+      <button class="btn btn-ghost" id="reportOpen" type="button">Get your lesson report</button>
+      <div class="btn-note">What you worked on and what's next</div>
+
+      <form id="reportForm" style="display:none">
+        <input class="field" type="text" id="rName" placeholder="Your name" required>
+        <select class="field" id="rDay"></select>
+        <input class="field" type="email" id="rEmail" placeholder="Email to send it to" required>
+        <input type="text" id="rGotcha" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn btn-primary" type="submit" id="rSubmit">Request my report</button>
+        <div class="form-err" id="rErr">Couldn't send — check signal and try again</div>
+      </form>
+
+      <div class="thanks" id="reportThanks" style="display:none">
+        <div class="tick">✓</div>
+        <div class="big">Report requested</div>
+        <div class="small">Your instructor will send it over —<br>keep an eye on your inbox</div>
+      </div>
+    </div>
   </div>
 
   <!-- shown when there's no valid profile in the URL -->
@@ -339,6 +361,64 @@
         a.target = '_blank';
         a.rel = 'noopener';
         wrap.appendChild(a);
+      });
+    }
+
+    // Lesson report request — needs the review endpoint (requests land with
+    // the reviews) and the instructor's opt-in flag.
+    if (P.rp && P.f) {
+      document.getElementById('reportWrap').style.display = 'block';
+
+      // Day picker: today back seven days, most recent first.
+      var sel = document.getElementById('rDay');
+      var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      for (var d = 0; d < 7; d++) {
+        var dt = new Date();
+        dt.setDate(dt.getDate() - d);
+        var iso = dt.getFullYear() + '-' +
+          ('0' + (dt.getMonth() + 1)).slice(-2) + '-' +
+          ('0' + dt.getDate()).slice(-2);
+        var label = d === 0 ? 'Today' : d === 1 ? 'Yesterday' : DAYS[dt.getDay()] + ' ' + dt.getDate();
+        var opt = document.createElement('option');
+        opt.value = iso;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      }
+
+      document.getElementById('reportOpen').addEventListener('click', function () {
+        this.style.display = 'none';
+        document.getElementById('reportForm').style.display = 'block';
+        document.getElementById('rName').focus();
+      });
+
+      document.getElementById('reportForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (document.getElementById('rGotcha').value) return;
+        var btn = document.getElementById('rSubmit');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        document.getElementById('rErr').style.display = 'none';
+
+        fetch(P.f, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'LESSON REPORT REQUEST',
+            instructor: P.n,
+            student: document.getElementById('rName').value,
+            lessonDate: sel.value,
+            lessonDay: sel.options[sel.selectedIndex].textContent,
+            email: document.getElementById('rEmail').value
+          })
+        }).then(function (r) {
+          if (!r.ok) throw new Error('send failed');
+          document.getElementById('reportForm').style.display = 'none';
+          document.getElementById('reportThanks').style.display = 'flex';
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Request my report';
+          document.getElementById('rErr').style.display = 'block';
+        });
       });
     }
 
