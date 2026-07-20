@@ -8,20 +8,20 @@
 <style>
   /* Strapped-In visual language — caps everywhere, hierarchy via size/weight/colour. */
   :root {
-    --bg: #0f1115;
-    --card: #14161c;
-    --card2: #161922;
-    --line: #20242b;
-    --line2: #2e333b;
-    --tx: #e8eaed;
-    --mut: #8b8f98;
-    --mut2: #6c7079;
-    --dim: #5a5e66;
-    --teal: #1d9e75;
-    --tealT: #7fd9bd;
-    --tealBg: #13241d;
-    --tealLn: #1d4d3c;
-    --amberT: #f0b96b;
+    --bg: #1b1917;
+    --card: #232019;
+    --card2: #2a251c;
+    --line: #2e2921;
+    --line2: #3f382d;
+    --tx: #ece6dc;
+    --mut: #9a9083;
+    --mut2: #7d7467;
+    --dim: #665e52;
+    --teal: #cf7a3e;
+    --tealT: #dfa878;
+    --tealBg: #2b2119;
+    --tealLn: #5f452a;
+    --amberT: #dcb476;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -105,7 +105,7 @@
     border: none; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .btn-primary { background: var(--teal); color: #06130d; }
+  .btn-primary { background: var(--teal); color: #241305; }
   .btn-primary:active { filter: brightness(1.1); }
   .btn-primary:disabled { background: var(--card2); color: var(--dim); cursor: default; }
   .btn-ghost {
@@ -165,7 +165,6 @@
     <div class="eyebrow">How was your lesson?</div>
     <div class="name" id="name"></div>
     <div class="sub" id="sub"></div>
-    <div class="chips" id="chips"></div>
 
     <!-- review form (hidden after submit) -->
     <div id="reviewWrap" style="align-self:stretch;display:flex;flex-direction:column;align-items:center;">
@@ -262,21 +261,6 @@
       initials();
     }
 
-    // Credibility chips: certs + seasons.
-    var chips = document.getElementById('chips');
-    (P.c || []).forEach(function (cert) {
-      var el = document.createElement('span');
-      el.className = 'chip';
-      el.textContent = cert;
-      chips.appendChild(el);
-    });
-    if (P.s) {
-      var el = document.createElement('span');
-      el.className = 'chip dim';
-      el.textContent = P.s + (P.s === 1 ? ' season' : ' seasons') + ' teaching';
-      chips.appendChild(el);
-    }
-
     // Stars — rating required; submit unlocks once one is tapped.
     var rating = 0;
     var starsWrap = document.getElementById('stars');
@@ -358,9 +342,11 @@
       });
     }
 
-    // Tip section — hidden without a tip link.
+    // Tip section — hidden without a tip link; button text is the
+    // instructor's own if they've set one.
     if (P.t) {
       document.getElementById('tipBtn').href = P.t;
+      if (P.tl) document.getElementById('tipBtn').textContent = P.tl.toUpperCase();
     } else {
       document.getElementById('tipDivider').style.display = 'none';
       document.getElementById('tipBtn').style.display = 'none';
