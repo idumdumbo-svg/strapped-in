@@ -103,8 +103,9 @@
   .socials .btn { margin-top: 0; }
 
   .col-note { font-size: 8.5px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; line-height: 1.45; }
-  .pay { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  .pay { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   .pay-card { width: 17px; height: 11px; flex: none; fill: none; stroke: var(--mut2); stroke-width: 1.6; }
+  .pay-mark { height: 16px; width: auto; opacity: .92; }
 
   .field {
     width: 100%;
@@ -117,6 +118,7 @@
   .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
 
   .sec { align-self: stretch; }
+  #reportWrap { margin-top: 10px; }
   .done { display: none; flex-direction: column; align-items: center; margin-top: 22px; }
 
   .foot {
@@ -144,19 +146,12 @@
     <div class="divider">Enjoyed it?</div>
     <a class="btn btn-tip" id="tipBtn" href="#">Say thanks with a tip</a>
     <div class="col-note">
-      <span class="pay">
-        <svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">
-          <rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>
-          <path d="M0.75 5.5h22.5"/>
-        </svg>
-        <span id="payText">Apple Pay · card</span>
-      </span>
+      <span class="pay"></span>
       <br>One tap · 100% goes to your instructor
     </div>
   </div>
 
   <div class="sec" id="reportWrap" style="display:none">
-    <div class="divider">Want a recap?</div>
     <button class="btn btn-ghost" id="reportOpen" type="button">Get your lesson report</button>
     <div class="col-note">What you worked on and what's next</div>
 
@@ -288,9 +283,34 @@
   // Tip — profile visits only, never straight after a payment.
   if (isProfile && P.t) {
     var ua = navigator.userAgent || '';
-    document.getElementById('payText').textContent =
-      (/iPhone|iPad|iPod|Macintosh/i.test(ua) ? 'Apple Pay'
-        : /Android/i.test(ua) ? 'Google Pay' : 'Wallet') + ' · card';
+    var isApple = /iPhone|iPad|iPod|Macintosh/i.test(ua);
+    var isAndroid = /Android/i.test(ua);
+    var marks = isApple ? [['apple-pay', 'Apple Pay']]
+      : isAndroid ? [['google-pay', 'Google Pay']]
+        : [['apple-pay', 'Apple Pay'], ['google-pay', 'Google Pay']];
+    var CARD_GLYPH =
+      '<svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">' +
+      '<rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>' +
+      '<path d="M0.75 5.5h22.5"/></svg>';
+    Array.prototype.forEach.call(document.querySelectorAll('.pay'), function (row) {
+      row.innerHTML = '';
+      marks.forEach(function (m) {
+        var img = document.createElement('img');
+        img.className = 'pay-mark';
+        img.alt = m[1];
+        img.onerror = function () {
+          var t = document.createElement('span');
+          t.textContent = m[1];
+          img.replaceWith(t);
+        };
+        img.src = '../pay/' + m[0] + '.svg';
+        row.appendChild(img);
+      });
+      var card = document.createElement('span');
+      card.className = 'pay';
+      card.innerHTML = CARD_GLYPH + '<span style="margin-left:4px">Card</span>';
+      row.appendChild(card);
+    });
     var tipBtn = document.getElementById('tipBtn');
     tipBtn.href = P.t;
     if (P.tl) tipBtn.textContent = P.tl;
@@ -333,26 +353,4 @@
 
       fetch(P.f, {
         method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'LESSON REPORT REQUEST',
-          instructor: P.n,
-          student: document.getElementById('rName').value,
-          lessonDate: sel.value,
-          lessonDay: sel.options[sel.selectedIndex].textContent,
-          email: document.getElementById('rEmail').value
-        })
-      }).then(function (r) {
-        if (!r.ok) throw new Error('send failed');
-        document.getElementById('reportForm').style.display = 'none';
-        document.getElementById('reportThanks').style.display = 'flex';
-      }).catch(function () {
-        btn.disabled = false;
-        btn.textContent = 'Request my report';
-        document.getElementById('rErr').style.display = 'block';
-      });
-    });
-  }
-</script>
-</body>
-</html>
+        headers: { 'Accept': 'application/json', 'Content-Typ
