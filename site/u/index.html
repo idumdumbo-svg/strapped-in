@@ -22,6 +22,10 @@
     --tealBg: #2b2119;
     --tealLn: #5f452a;
     --amberT: #dcb476;
+    /* hard shadows give buttons a pressable, slightly extruded edge */
+    --sh-primary: #8a4d20;
+    --sh-tip: #4a3520;
+    --sh-ghost: #15120e;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -60,16 +64,9 @@
     overflow: hidden;
   }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .kit { width: 40px; height: 40px; fill: none; stroke: var(--tealT); stroke-width: 1.6; stroke-linecap: round; }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 14px; }
-  .chip {
-    font-size: 9.5px; letter-spacing: .12em; color: var(--tealT);
-    background: var(--tealBg); border: 1px solid var(--tealLn);
-    border-radius: 999px; padding: 6px 12px;
-  }
-  .chip.dim { color: var(--mut); background: var(--card); border-color: var(--line2); }
-
-  .stars { display: flex; gap: 10px; margin-top: 28px; }
+  .stars { display: flex; gap: 10px; margin-top: 26px; }
   .stars button {
     background: none; border: none; cursor: pointer; padding: 4px;
     font-size: 34px; line-height: 1; color: var(--line2);
@@ -79,7 +76,7 @@
   .stars button:active { transform: scale(1.15); }
   .stars-hint { font-size: 10px; color: var(--mut2); letter-spacing: .12em; margin-top: 12px; }
 
-  form { align-self: stretch; margin-top: 22px; }
+  form { align-self: stretch; }
   .field {
     width: 100%;
     background: var(--card);
@@ -95,51 +92,74 @@
   }
   .field::placeholder { color: var(--mut2); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
   .field:focus { outline: none; border-color: var(--tealLn); }
-  textarea.field { min-height: 96px; resize: vertical; }
+  textarea.field { min-height: 92px; resize: vertical; }
 
+  /* Buttons: solid face + hard bottom edge, pressing sinks them into it. */
   .btn {
-    display: block; width: 100%; text-align: center; text-decoration: none;
-    border-radius: 14px; padding: 16px 18px; margin-top: 14px;
-    font-size: 13px; font-weight: 600; letter-spacing: .12em;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    text-decoration: none;
+    border-radius: 14px; padding: 16px 14px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .1em; line-height: 1.3;
     text-transform: uppercase; font-family: inherit;
     border: none; cursor: pointer;
+    transition: transform .06s ease, box-shadow .06s ease, filter .12s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .btn-primary { background: var(--teal); color: #241305; }
-  .btn-primary:active { filter: brightness(1.1); }
-  .btn-primary:disabled { background: var(--card2); color: var(--dim); cursor: default; }
-  .btn-ghost {
-    background: var(--card); color: var(--tx);
-    border: 1px solid var(--line2);
+  .btn:active { transform: translateY(3px); box-shadow: none !important; }
+  .btn-primary { background: var(--teal); color: #241305; box-shadow: 0 3px 0 var(--sh-primary); }
+  .btn-primary:disabled {
+    background: var(--card2); color: var(--dim);
+    box-shadow: 0 3px 0 var(--sh-ghost); cursor: default; transform: none;
   }
-  .btn-ghost:active { background: var(--card2); }
-  /* the tip button earns a warmer treatment than a plain ghost button */
   .btn-tip {
     background: var(--tealBg); color: var(--tealT);
     border: 1px solid var(--tealLn);
+    box-shadow: 0 3px 0 var(--sh-tip);
   }
-  .btn-tip:active { background: var(--card2); }
+  .btn-ghost {
+    background: var(--card); color: var(--tx);
+    border: 1px solid var(--line2);
+    box-shadow: 0 3px 0 var(--sh-ghost);
+  }
+
+  /* the two main actions, side by side — each column owns its OWN caption, so
+     the payment marks can never be read as applying to the review button */
+  .actions { display: flex; gap: 10px; align-self: stretch; margin-top: 16px; }
+  .action-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .action-col .btn { width: 100%; }
+  .col-note {
+    font-size: 8.5px; color: var(--mut2); letter-spacing: .1em;
+    margin-top: 9px; text-align: center; line-height: 1.45;
+  }
+
+  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 10px; text-align: center; line-height: 1.5; }
+  .honesty {
+    align-self: stretch; margin-top: 16px;
+    background: var(--card); border: 1px solid var(--line2); border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 9px; color: var(--mut); letter-spacing: .11em; line-height: 1.65; text-align: center;
+  }
+  .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
 
   .pay {
-    display: flex; align-items: center; justify-content: center; gap: 7px;
-    margin-top: 10px;
-    font-size: 9px; letter-spacing: .11em; color: var(--mut2);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 8.5px; letter-spacing: .1em; color: var(--mut2);
   }
-  .pay-card {
-    width: 20px; height: 13px; flex: none;
-    fill: none; stroke: var(--mut2); stroke-width: 1.5;
-  }
-  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 9px; text-align: center; }
+  .pay-card { width: 17px; height: 11px; flex: none; fill: none; stroke: var(--mut2); stroke-width: 1.6; }
+
+  /* secondary action — a real button, deliberately small */
   .skip {
-    display: block; width: 100%; margin-top: 16px;
-    background: none; border: none; cursor: pointer;
-    color: var(--mut2); font-family: inherit; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase; text-decoration: none; text-align: center;
-    padding: 8px;
+    margin-top: 16px;
+    background: var(--card); color: var(--mut2);
+    border: 1px solid var(--line2); border-radius: 999px;
+    box-shadow: 0 2px 0 var(--sh-ghost);
+    font-family: inherit; font-size: 8.5px; letter-spacing: .12em;
+    text-transform: uppercase; text-decoration: none;
+    padding: 8px 14px; cursor: pointer;
+    transition: transform .06s ease, box-shadow .06s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .skip:active { color: var(--tealT); }
-  .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
+  .skip:active { transform: translateY(2px); box-shadow: none; }
 
   .divider {
     align-self: stretch; display: flex; align-items: center; gap: 12px;
@@ -147,7 +167,7 @@
   }
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 
-  .thanks { display: none; flex-direction: column; align-items: center; margin-top: 34px; }
+  .thanks { display: none; flex-direction: column; align-items: center; align-self: stretch; margin-top: 30px; }
   .thanks .tick {
     width: 64px; height: 64px; border-radius: 50%;
     background: var(--tealBg); border: 1px solid var(--tealLn);
@@ -156,41 +176,31 @@
   }
   .thanks .big { font-size: 16px; font-weight: 600; letter-spacing: .12em; margin-top: 18px; }
   .thanks .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 8px; text-align: center; line-height: 1.6; }
-  .thanks { align-self: stretch; }
 
-  .socials {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    align-self: stretch; margin-top: 4px;
-  }
-  .social-btn {
+  .socials { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-self: stretch; margin-top: 4px; }
+
+  /* compact always-visible social row */
+  .mini { display: flex; gap: 10px; justify-content: center; margin-top: 32px; }
+  .mini a {
+    width: 42px; height: 42px; border-radius: 13px;
+    background: var(--card); border: 1px solid var(--line2);
+    box-shadow: 0 2px 0 var(--sh-ghost);
     display: flex; align-items: center; justify-content: center;
-    background: var(--card); color: var(--tx); text-decoration: none;
-    border: 1px solid var(--line2); border-radius: 14px;
-    padding: 14px 10px; font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    transition: transform .06s ease, box-shadow .06s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .social-btn:active { background: var(--card2); }
-  .tipWrap { align-self: stretch; }
+  .mini a:active { transform: translateY(2px); box-shadow: none; }
+  .mini svg { width: 17px; height: 17px; fill: none; stroke: var(--mut); stroke-width: 1.7; }
+  .mini .glyph-f { font-size: 15px; font-weight: 600; color: var(--mut); }
+
+  .reportWrap { align-self: stretch; }
 
   .empty { display: none; flex-direction: column; align-items: center; margin-top: 60px; text-align: center; }
   .empty .big { font-size: 15px; font-weight: 600; letter-spacing: .14em; }
   .empty .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 10px; line-height: 1.7; }
 
-  /* compact always-visible social row — the links are findable without
-     having to leave a review first */
-  .mini { display: flex; gap: 10px; justify-content: center; margin-top: 34px; }
-  .mini a {
-    width: 40px; height: 40px; border-radius: 12px;
-    background: var(--card); border: 1px solid var(--line2);
-    display: flex; align-items: center; justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .mini a:active { background: var(--card2); }
-  .mini svg { width: 17px; height: 17px; fill: none; stroke: var(--mut); stroke-width: 1.7; }
-  .mini .glyph-f { font-size: 15px; font-weight: 600; color: var(--mut); }
-
   .foot {
-    margin-top: auto; padding-top: 40px;
+    margin-top: auto; padding-top: 38px;
     font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
   }
   .foot .brand { color: var(--mut2); font-weight: 600; }
@@ -204,48 +214,55 @@
     <div class="name" id="name"></div>
     <div class="sub" id="sub"></div>
 
-    <!-- review form (hidden after submit) -->
     <div id="reviewWrap" style="align-self:stretch;display:flex;flex-direction:column;align-items:center;">
       <div class="stars" id="stars" aria-label="Tap a star rating"></div>
       <div class="stars-hint" id="starsHint">Tap the stars to rate</div>
 
+
       <form id="reviewForm">
-        <textarea class="field" name="comment" id="comment" placeholder="What stuck with you? (optional)"></textarea>
+        <textarea class="field" name="comment" id="comment" placeholder="What clicked? What didn't? (optional)"></textarea>
         <input class="field" type="text" name="student" id="student" placeholder="Your name (optional)">
         <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
-        <button class="btn btn-primary" type="submit" id="submitBtn" disabled>Send review</button>
-        <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
       </form>
-      <button class="skip" type="button" id="skipReview">Skip — just show me the links</button>
     </div>
 
-    <!-- thank-you state -->
     <div class="thanks" id="thanks">
       <div class="tick">✓</div>
-      <div class="big">Thanks for the review</div>
+      <div class="big">Thanks for the feedback</div>
       <div class="small">It goes straight to your instructor —<br>see you back on the mountain</div>
       <div class="divider" id="socialDivider" style="display:none">Stay in touch</div>
       <div class="socials" id="socials"></div>
-      <a class="skip" id="profileLink" href="#" style="display:none">Open my profile page</a>
     </div>
 
-    <div class="tipWrap">
-      <div class="divider" id="tipDivider">Enjoyed it?</div>
-      <a class="btn btn-tip" id="tipBtn" href="#">Say thanks with a tip</a>
-      <div class="pay" id="payRow">
-        <svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">
-          <rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>
-          <path d="M0.75 5.5h22.5"/>
-        </svg>
-        <span id="payText">Apple Pay · Google Pay · Visa · Mastercard</span>
+    <div class="actions" id="actions">
+      <div class="action-col" id="reviewCol" data-role="feedback">
+        <button class="btn btn-primary" type="submit" form="reviewForm" id="submitBtn" disabled>Send feedback</button>
+        <div class="col-note">Takes ten seconds</div>
       </div>
-      <div class="btn-note" id="tipNote">One tap · no account needed · 100% goes to your instructor</div>
+      <div class="action-col" id="tipCol">
+        <a class="btn btn-tip" id="tipBtn" href="#">Tip</a>
+        <div class="col-note">
+          <span class="pay" id="payRow">
+            <svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">
+              <rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>
+              <path d="M0.75 5.5h22.5"/>
+            </svg>
+            <span id="payText">Apple Pay · card</span>
+          </span>
+        </div>
+      </div>
     </div>
+    <div class="honesty" id="honesty">
+      Honesty matters — your instructor reads this and uses it to tune how they teach
+    </div>
+    <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
 
-    <!-- lesson report request (shown only if the instructor enabled it) -->
-    <div class="tipWrap" id="reportWrap" style="display:none">
+    <button class="skip" type="button" id="skipReview">Skip — just the links</button>
+    <a class="skip" id="profileLink" href="#" style="display:none">Open my profile page</a>
+
+    <div class="reportWrap" id="reportWrap" style="display:none">
       <div class="divider">Want a recap?</div>
-      <button class="btn btn-ghost" id="reportOpen" type="button">Get your lesson report</button>
+      <button class="btn btn-ghost" id="reportOpen" type="button" style="width:100%">Get your lesson report</button>
       <div class="btn-note">What you worked on and what's next</div>
 
       <form id="reportForm" style="display:none">
@@ -253,11 +270,11 @@
         <select class="field" id="rDay"></select>
         <input class="field" type="email" id="rEmail" placeholder="Email to send it to" required>
         <input type="text" id="rGotcha" style="display:none" tabindex="-1" autocomplete="off">
-        <button class="btn btn-primary" type="submit" id="rSubmit">Request my report</button>
+        <button class="btn btn-primary" type="submit" id="rSubmit" style="width:100%;margin-top:14px">Request my report</button>
         <div class="form-err" id="rErr">Couldn't send — check signal and try again</div>
       </form>
 
-      <div class="thanks" id="reportThanks" style="display:none">
+      <div class="thanks" id="reportThanks">
         <div class="tick">✓</div>
         <div class="big">Report requested</div>
         <div class="small">Your instructor will send it over —<br>keep an eye on your inbox</div>
@@ -265,13 +282,12 @@
     </div>
   </div>
 
-  <!-- shown when there's no valid profile in the URL -->
+  <div class="mini" id="miniSocials"></div>
+
   <div class="empty" id="empty">
     <div class="big">Strapped-In</div>
     <div class="small">This card needs to be opened from an<br>instructor's QR code</div>
   </div>
-
-  <div class="mini" id="miniSocials"></div>
 
   <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
 </div>
@@ -301,6 +317,7 @@
   var P = decodeProfile();
   if (!P) {
     document.getElementById('card').style.display = 'none';
+    document.getElementById('miniSocials').style.display = 'none';
     document.getElementById('empty').style.display = 'flex';
   } else {
     // Stash the profile for the same-origin thanks page — Stripe's after-payment
@@ -318,18 +335,27 @@
     if (P.d) subBits.push(P.d);
     document.getElementById('sub').textContent = subBits.join(' · ');
 
-    // Avatar: photo if provided (falling back to initials if it fails to load).
+    // Avatar: photo if provided, else the kit they teach on.
+    var BOARD =
+      '<svg class="kit" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(38 12 12)">' +
+      '<rect x="8.6" y="2.4" width="6.8" height="19.2" rx="3.4"/>' +
+      '<path d="M9.8 9.1h4.4M9.8 14.9h4.4"/></g></svg>';
+    var SKIS =
+      '<svg class="kit" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(38 12 12)">' +
+      '<rect x="6.6" y="2.4" width="4" height="19.2" rx="2"/>' +
+      '<rect x="13.4" y="2.4" width="4" height="19.2" rx="2"/></g></svg>';
+
     var avatar = document.getElementById('avatar');
-    function initials() { avatar.textContent = P.n.slice(0, 2); }
+    function kit() { avatar.innerHTML = P.d === 'ski' ? SKIS : BOARD; }
     if (P.p) {
       var img = new Image();
-      img.onload = function () { avatar.textContent = ''; avatar.appendChild(img); };
-      img.onerror = initials;
+      img.onload = function () { avatar.innerHTML = ''; avatar.appendChild(img); };
+      img.onerror = kit;
       img.src = P.p;
       img.alt = P.n;
-      initials(); // shown until/unless the photo arrives
+      kit();
     } else {
-      initials();
+      kit();
     }
 
     // Stars — rating required; submit unlocks once one is tapped.
@@ -353,65 +379,34 @@
       })(i);
     }
 
-    // Review form → the instructor's own endpoint. No endpoint = no form.
     if (!P.f) {
-      document.getElementById('reviewForm').style.display = 'none';
-      document.getElementById('starsHint').textContent = 'Reviews aren\'t set up yet';
+      document.getElementById('reviewWrap').style.display = 'none';
+      document.getElementById('reviewCol').style.display = 'none';
+      document.getElementById('honesty').style.display = 'none';
     }
-    document.getElementById('reviewForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!rating || !P.f) return;
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending…';
-      document.getElementById('formErr').style.display = 'none';
 
-      fetch(P.f, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instructor: P.n,
-          resort: P.r || '',
-          rating: rating + ' / 5',
-          comment: document.getElementById('comment').value || '(none)',
-          student: document.getElementById('student').value || '(anonymous)'
-        })
-      }).then(function (r) {
-        if (!r.ok) throw new Error('send failed');
-        document.getElementById('reviewWrap').style.display = 'none';
-        document.getElementById('thanks').style.display = 'flex';
-        showSocials();
-      }).catch(function () {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Send review';
-        document.getElementById('formErr').style.display = 'block';
-      });
-    });
-
-    // Payment marks — name the wallet the student's own device actually has,
-    // so the promise matches what they'll see at checkout.
+    // Payment marks — name the wallet the student's own device actually has.
     var ua = navigator.userAgent || '';
     var wallet = /iPhone|iPad|iPod|Macintosh/i.test(ua)
       ? 'Apple Pay'
       : /Android/i.test(ua)
         ? 'Google Pay'
-        : 'Apple Pay · Google Pay';
-    document.getElementById('payText').textContent = wallet + ' · Visa · Mastercard';
+        : 'Wallet';
+    document.getElementById('payText').textContent = wallet + ' · card';
 
-    // Compact social row at the foot of the card — always available, no review
-    // required. Simple generic glyphs, drawn inline (no external requests).
+    // Compact social row — always available, no review required.
     var GLYPH = {
       w: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4 8.5 8.5 0 0 1-4-1L3 20l1.1-5.4a8.4 8.4 0 0 1-1.1-4.1A8.4 8.4 0 0 1 11.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg>',
       i: '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
       e: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>',
-      b: '<span class="glyph-f">f</span>',
+      b: '<span class="glyph-f">f</span>'
     };
-
     var mini = document.getElementById('miniSocials');
     [
       { k: 'w', href: P.w ? 'https://wa.me/' + P.w : null, label: 'WhatsApp' },
       { k: 'i', href: P.i ? 'https://instagram.com/' + P.i : null, label: 'Instagram' },
       { k: 'b', href: P.b ? (/^https?:\/\//i.test(P.b) ? P.b : 'https://facebook.com/' + P.b) : null, label: 'Facebook' },
-      { k: 'e', href: P.e ? 'mailto:' + P.e : null, label: 'Email' },
+      { k: 'e', href: P.e ? 'mailto:' + P.e : null, label: 'Email' }
     ].forEach(function (s) {
       if (!s.href) return;
       var a = document.createElement('a');
@@ -423,25 +418,26 @@
       mini.appendChild(a);
     });
 
-    // Skip the review — go straight to the links. The tip section is already
-    // below and stays visible either way.
-    document.getElementById('skipReview').addEventListener('click', function () {
+    // Swap into the "done" state — used by both sending and skipping. The tip
+    // button stays put and simply widens to fill the row.
+    function showLinks(skipped) {
       document.getElementById('reviewWrap').style.display = 'none';
+      document.getElementById('reviewCol').style.display = 'none';
+      document.getElementById('skipReview').style.display = 'none';
+      document.getElementById('honesty').style.display = 'none';
       var t = document.getElementById('thanks');
+      if (skipped) {
+        t.querySelector('.big').textContent = 'Stay in touch';
+        t.querySelector('.small').innerHTML = 'Catch you on the mountain —<br>here\'s where to find me';
+      }
       t.style.display = 'flex';
-      t.querySelector('.big').textContent = 'Stay in touch';
-      t.querySelector('.small').innerHTML = 'Catch you on the mountain —<br>here\'s where to find me';
       showSocials();
-    });
+    }
 
-    // Stay-in-touch links — built once, revealed only after a review is sent.
     function showSocials() {
-      // A bookmarkable profile page, carrying the same profile in its hash, so
-      // the student can come back to the links (and tip) later.
       var pl = document.getElementById('profileLink');
       pl.href = 'thanks/' + location.hash;
-      pl.style.display = 'block';
-      // the full-width buttons take over from the compact foot row
+      pl.style.display = 'inline-block';
       document.getElementById('miniSocials').style.display = 'none';
 
       var links = [];
@@ -457,9 +453,10 @@
       if (!links.length) return;
       document.getElementById('socialDivider').style.display = 'flex';
       var wrap = document.getElementById('socials');
+      wrap.innerHTML = '';
       links.forEach(function (l) {
         var a = document.createElement('a');
-        a.className = 'social-btn';
+        a.className = 'btn btn-ghost';
         a.textContent = l.label.toUpperCase();
         a.href = l.href;
         a.target = '_blank';
@@ -468,12 +465,42 @@
       });
     }
 
-    // Lesson report request — needs the review endpoint (requests land with
-    // the reviews) and the instructor's opt-in flag.
+    document.getElementById('skipReview').addEventListener('click', function () {
+      showLinks(true);
+    });
+
+    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!rating || !P.f) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      document.getElementById('formErr').style.display = 'none';
+
+      fetch(P.f, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'LESSON FEEDBACK',
+          instructor: P.n,
+          resort: P.r || '',
+          rating: rating + ' / 5',
+          comment: document.getElementById('comment').value || '(none)',
+          student: document.getElementById('student').value || '(anonymous)'
+        })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('send failed');
+        showLinks(false);
+      }).catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send feedback';
+        document.getElementById('formErr').style.display = 'block';
+      });
+    });
+
+    // Lesson report request — needs the review endpoint and the opt-in flag.
     if (P.rp && P.f) {
       document.getElementById('reportWrap').style.display = 'block';
 
-      // Day picker: today back seven days, most recent first.
       var sel = document.getElementById('rDay');
       var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       for (var d = 0; d < 7; d++) {
@@ -526,16 +553,13 @@
       });
     }
 
-    // Tip section — hidden without a tip link; button text is the
-    // instructor's own if they've set one.
+    // Tip — hidden without a link; custom label if the instructor set one.
     if (P.t) {
-      document.getElementById('tipBtn').href = P.t;
-      if (P.tl) document.getElementById('tipBtn').textContent = P.tl.toUpperCase();
+      var tipBtn = document.getElementById('tipBtn');
+      tipBtn.href = P.t;
+      tipBtn.textContent = P.tl ? P.tl : 'Tip';
     } else {
-      document.getElementById('tipDivider').style.display = 'none';
-      document.getElementById('tipBtn').style.display = 'none';
-      document.getElementById('tipNote').style.display = 'none';
-      document.getElementById('payRow').style.display = 'none';
+      document.getElementById('tipCol').style.display = 'none';
     }
   }
 </script>
