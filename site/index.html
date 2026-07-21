@@ -2,9 +2,566 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=./u/dave/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>STRAPPED-IN</title>
-<style>body{background:#1b1917;color:#9a9083;font-family:-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:11px;display:flex;align-items:center;justify-content:center;min-height:100vh}</style>
+<meta name="description" content="Leave a quick review for your snowsports lesson.">
+<style>
+  /* Strapped-In visual language — caps everywhere, hierarchy via size/weight/colour. */
+  :root {
+    --bg: #1b1917;
+    --card: #232019;
+    --card2: #2a251c;
+    --line: #2e2921;
+    --line2: #3f382d;
+    --tx: #ece6dc;
+    --mut: #9a9083;
+    --mut2: #7d7467;
+    --dim: #665e52;
+    --teal: #cf7a3e;
+    --tealT: #dfa878;
+    --tealBg: #2b2119;
+    --tealLn: #5f452a;
+    --amberT: #dcb476;
+    /* hard shadows give buttons a pressable, slightly extruded edge */
+    --sh-primary: #8a4d20;
+    --sh-tip: #4a3520;
+    --sh-ghost: #15120e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-transform: uppercase;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 430px;
+    padding: 40px 22px calc(34px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .eyebrow { font-size: 11px; color: var(--tealT); letter-spacing: .18em; font-weight: 500; }
+  .name { font-size: 26px; font-weight: 600; letter-spacing: .09em; margin-top: 12px; }
+  .sub { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 7px; }
+
+  .avatar {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: var(--tealBg);
+    border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 600; color: var(--tealT); letter-spacing: .06em;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .kit { width: 40px; height: 40px; fill: none; stroke: var(--tealT); stroke-width: 1.6; stroke-linecap: round; }
+
+  .stars { display: flex; gap: 10px; margin-top: 26px; }
+  .stars button {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    font-size: 34px; line-height: 1; color: var(--line2);
+    transition: color .12s ease, transform .12s ease;
+  }
+  .stars button.lit { color: var(--amberT); }
+  .stars button:active { transform: scale(1.15); }
+  .stars-hint { font-size: 10px; color: var(--mut2); letter-spacing: .12em; margin-top: 12px; }
+
+  form { align-self: stretch; }
+  .field {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--line2);
+    border-radius: 14px;
+    color: var(--tx);
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: .04em;
+    padding: 14px 16px;
+    margin-top: 12px;
+    text-transform: none;
+  }
+  .field::placeholder { color: var(--mut2); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
+  .field:focus { outline: none; border-color: var(--tealLn); }
+  textarea.field { min-height: 92px; resize: vertical; }
+
+  /* Buttons: solid face + hard bottom edge, pressing sinks them into it. */
+  .btn {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    text-decoration: none;
+    border-radius: 14px; padding: 16px 14px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .1em; line-height: 1.3;
+    text-transform: uppercase; font-family: inherit;
+    border: none; cursor: pointer;
+    transition: transform .06s ease, box-shadow .06s ease, filter .12s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: none !important; }
+  .btn-primary { background: var(--teal); color: #241305; box-shadow: 0 3px 0 var(--sh-primary); }
+  .btn-primary:disabled {
+    background: var(--card2); color: var(--dim);
+    box-shadow: 0 3px 0 var(--sh-ghost); cursor: default; transform: none;
+  }
+  .btn-tip {
+    background: var(--tealBg); color: var(--tealT);
+    border: 1px solid var(--tealLn);
+    box-shadow: 0 3px 0 var(--sh-tip);
+  }
+  .btn-ghost {
+    background: var(--card); color: var(--tx);
+    border: 1px solid var(--line2);
+    box-shadow: 0 3px 0 var(--sh-ghost);
+  }
+
+  /* the two main actions, side by side — each column owns its OWN caption, so
+     the payment marks can never be read as applying to the review button */
+  .actions { display: flex; gap: 10px; align-self: stretch; margin-top: 16px; }
+  .action-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .action-col .btn { width: 100%; }
+  .col-note {
+    font-size: 8.5px; color: var(--mut2); letter-spacing: .1em;
+    margin-top: 9px; text-align: center; line-height: 1.45;
+  }
+
+  .btn-note { font-size: 10px; color: var(--mut2); letter-spacing: .1em; margin-top: 10px; text-align: center; line-height: 1.5; }
+  .honesty {
+    align-self: stretch; margin-top: 16px;
+    background: var(--card); border: 1px solid var(--line2); border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 9px; color: var(--mut); letter-spacing: .11em; line-height: 1.65; text-align: center;
+  }
+  .form-err { font-size: 10.5px; color: var(--amberT); letter-spacing: .1em; margin-top: 10px; text-align: center; display: none; }
+
+  .pay {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 8.5px; letter-spacing: .1em; color: var(--mut2);
+  }
+  .pay-card { width: 17px; height: 11px; flex: none; fill: none; stroke: var(--mut2); stroke-width: 1.6; }
+
+  /* secondary action — a real button, deliberately small */
+  .skip {
+    margin-top: 16px;
+    background: var(--card); color: var(--mut2);
+    border: 1px solid var(--line2); border-radius: 999px;
+    box-shadow: 0 2px 0 var(--sh-ghost);
+    font-family: inherit; font-size: 8.5px; letter-spacing: .12em;
+    text-transform: uppercase; text-decoration: none;
+    padding: 8px 14px; cursor: pointer;
+    transition: transform .06s ease, box-shadow .06s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .skip:active { transform: translateY(2px); box-shadow: none; }
+
+  .divider {
+    align-self: stretch; display: flex; align-items: center; gap: 12px;
+    margin-top: 26px; color: var(--dim); font-size: 10px; letter-spacing: .16em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .thanks { display: none; flex-direction: column; align-items: center; align-self: stretch; margin-top: 30px; }
+  .thanks .tick {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--tealBg); border: 1px solid var(--tealLn);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--tealT); font-size: 28px;
+  }
+  .thanks .big { font-size: 16px; font-weight: 600; letter-spacing: .12em; margin-top: 18px; }
+  .thanks .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 8px; text-align: center; line-height: 1.6; }
+
+  .socials { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-self: stretch; margin-top: 4px; }
+
+  /* compact always-visible social row */
+  .mini { display: flex; gap: 10px; justify-content: center; margin-top: 32px; }
+  .mini a {
+    width: 42px; height: 42px; border-radius: 13px;
+    background: var(--card); border: 1px solid var(--line2);
+    box-shadow: 0 2px 0 var(--sh-ghost);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .06s ease, box-shadow .06s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mini a:active { transform: translateY(2px); box-shadow: none; }
+  .mini svg { width: 17px; height: 17px; fill: none; stroke: var(--mut); stroke-width: 1.7; }
+  .mini .glyph-f { font-size: 15px; font-weight: 600; color: var(--mut); }
+
+  .reportWrap { align-self: stretch; }
+
+  .empty { display: none; flex-direction: column; align-items: center; margin-top: 60px; text-align: center; }
+  .empty .big { font-size: 15px; font-weight: 600; letter-spacing: .14em; }
+  .empty .small { font-size: 10.5px; color: var(--mut); letter-spacing: .1em; margin-top: 10px; line-height: 1.7; }
+
+  .foot {
+    margin-top: auto; padding-top: 38px;
+    font-size: 9.5px; color: var(--dim); letter-spacing: .14em; text-align: center;
+  }
+  .foot .brand { color: var(--mut2); font-weight: 600; }
+</style>
 </head>
-<body><a href="./u/dave/" style="color:#dfa878">Strapped-In →</a></body>
+<body>
+<div class="wrap">
+  <div id="card" style="display:flex;flex-direction:column;align-items:center;align-self:stretch;">
+    <div class="avatar" id="avatar"></div>
+    <div class="eyebrow">How was your lesson?</div>
+    <div class="name" id="name"></div>
+    <div class="sub" id="sub"></div>
+
+    <div id="reviewWrap" style="align-self:stretch;display:flex;flex-direction:column;align-items:center;">
+      <div class="stars" id="stars" aria-label="Tap a star rating"></div>
+      <div class="stars-hint" id="starsHint">Tap the stars to rate</div>
+
+
+      <form id="reviewForm">
+        <textarea class="field" name="comment" id="comment" placeholder="What clicked? What didn't? (optional)"></textarea>
+        <input class="field" type="text" name="student" id="student" placeholder="Your name (optional)">
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+      </form>
+    </div>
+
+    <div class="thanks" id="thanks">
+      <div class="tick">✓</div>
+      <div class="big">Thanks for the feedback</div>
+      <div class="small">It goes straight to your instructor —<br>see you back on the mountain</div>
+      <div class="divider" id="socialDivider" style="display:none">Stay in touch</div>
+      <div class="socials" id="socials"></div>
+    </div>
+
+    <div class="actions" id="actions">
+      <div class="action-col" id="reviewCol" data-role="feedback">
+        <button class="btn btn-primary" type="submit" form="reviewForm" id="submitBtn" disabled>Send feedback</button>
+        <div class="col-note">Takes ten seconds</div>
+      </div>
+      <div class="action-col" id="tipCol">
+        <a class="btn btn-tip" id="tipBtn" href="#">Tip</a>
+        <div class="col-note">
+          <span class="pay" id="payRow">
+            <svg class="pay-card" viewBox="0 0 24 16" aria-hidden="true">
+              <rect x="0.75" y="0.75" width="22.5" height="14.5" rx="2.5"/>
+              <path d="M0.75 5.5h22.5"/>
+            </svg>
+            <span id="payText">Apple Pay · card</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="honesty" id="honesty">
+      Honesty matters — your instructor reads this and uses it to tune how they teach
+    </div>
+    <div class="form-err" id="formErr">Couldn't send — check signal and try again</div>
+
+    <button class="skip" type="button" id="skipReview">Skip — just the links</button>
+    <a class="skip" id="profileLink" href="#" style="display:none">Open my profile page</a>
+
+    <div class="reportWrap" id="reportWrap" style="display:none">
+      <div class="divider">Want a recap?</div>
+      <button class="btn btn-ghost" id="reportOpen" type="button" style="width:100%">Get your lesson report</button>
+      <div class="btn-note">What you worked on and what's next</div>
+
+      <form id="reportForm" style="display:none">
+        <input class="field" type="text" id="rName" placeholder="Your name" required>
+        <select class="field" id="rDay"></select>
+        <input class="field" type="email" id="rEmail" placeholder="Email to send it to" required>
+        <input type="text" id="rGotcha" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn btn-primary" type="submit" id="rSubmit" style="width:100%;margin-top:14px">Request my report</button>
+        <div class="form-err" id="rErr">Couldn't send — check signal and try again</div>
+      </form>
+
+      <div class="thanks" id="reportThanks">
+        <div class="tick">✓</div>
+        <div class="big">Report requested</div>
+        <div class="small">Your instructor will send it over —<br>keep an eye on your inbox</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mini" id="miniSocials"></div>
+
+  <div class="empty" id="empty">
+    <div class="big">Strapped-In</div>
+    <div class="small">This card needs to be opened from an<br>instructor's QR code</div>
+  </div>
+
+  <div class="foot"><span class="brand">Strapped-In</span><br>The snowsport instructor's toolkit</div>
+</div>
+
+<script>
+  // The instructor's whole profile arrives in the URL hash as base64url JSON
+  // (packed by the app — profileUrl in store.tsx). Nothing here is hardcoded,
+  // so this one page serves every instructor.
+  function decodeProfile() {
+    try {
+      var h = location.hash.replace(/^#/, '');
+      if (!h) return null;
+      var b64 = h.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var bin = atob(b64);
+      var pct = '';
+      for (var i = 0; i < bin.length; i++) {
+        pct += '%' + ('0' + bin.charCodeAt(i).toString(16)).slice(-2);
+      }
+      var p = JSON.parse(decodeURIComponent(pct));
+      return p && p.n ? p : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = decodeProfile();
+  if (!P) {
+    document.getElementById('card').style.display = 'none';
+    document.getElementById('miniSocials').style.display = 'none';
+    document.getElementById('empty').style.display = 'flex';
+  } else {
+    // Stash the profile for the same-origin thanks page — Stripe's after-payment
+    // redirect can't carry the URL hash, so the thanks page reads this instead.
+    try { localStorage.setItem('strappedin.profile', JSON.stringify(P)); } catch (e) {}
+    render(P);
+  }
+
+  function render(P) {
+    document.title = P.n.toUpperCase() + ' — STRAPPED-IN';
+    document.getElementById('name').textContent = P.n;
+
+    var subBits = [];
+    if (P.r) subBits.push(P.r);
+    if (P.d) subBits.push(P.d);
+    document.getElementById('sub').textContent = subBits.join(' · ');
+
+    // Avatar: photo if provided, else the kit they teach on.
+    var BOARD =
+      '<svg class="kit" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(38 12 12)">' +
+      '<rect x="8.6" y="2.4" width="6.8" height="19.2" rx="3.4"/>' +
+      '<path d="M9.8 9.1h4.4M9.8 14.9h4.4"/></g></svg>';
+    var SKIS =
+      '<svg class="kit" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(38 12 12)">' +
+      '<rect x="6.6" y="2.4" width="4" height="19.2" rx="2"/>' +
+      '<rect x="13.4" y="2.4" width="4" height="19.2" rx="2"/></g></svg>';
+
+    var avatar = document.getElementById('avatar');
+    function kit() { avatar.innerHTML = P.d === 'ski' ? SKIS : BOARD; }
+    if (P.p) {
+      var img = new Image();
+      img.onload = function () { avatar.innerHTML = ''; avatar.appendChild(img); };
+      img.onerror = kit;
+      img.src = P.p;
+      img.alt = P.n;
+      kit();
+    } else {
+      kit();
+    }
+
+    // Stars — rating required; submit unlocks once one is tapped.
+    var rating = 0;
+    var starsWrap = document.getElementById('stars');
+    var submitBtn = document.getElementById('submitBtn');
+    for (var i = 1; i <= 5; i++) {
+      (function (n) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = '★';
+        b.setAttribute('aria-label', n + ' star' + (n > 1 ? 's' : ''));
+        b.addEventListener('click', function () {
+          rating = n;
+          var kids = starsWrap.children;
+          for (var k = 0; k < kids.length; k++) kids[k].classList.toggle('lit', k < n);
+          document.getElementById('starsHint').textContent = n + ' / 5';
+          if (P.f) submitBtn.disabled = false;
+        });
+        starsWrap.appendChild(b);
+      })(i);
+    }
+
+    if (!P.f) {
+      document.getElementById('reviewWrap').style.display = 'none';
+      document.getElementById('reviewCol').style.display = 'none';
+      document.getElementById('honesty').style.display = 'none';
+    }
+
+    // Payment marks — name the wallet the student's own device actually has.
+    var ua = navigator.userAgent || '';
+    var wallet = /iPhone|iPad|iPod|Macintosh/i.test(ua)
+      ? 'Apple Pay'
+      : /Android/i.test(ua)
+        ? 'Google Pay'
+        : 'Wallet';
+    document.getElementById('payText').textContent = wallet + ' · card';
+
+    // Compact social row — always available, no review required.
+    var GLYPH = {
+      w: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4 8.5 8.5 0 0 1-4-1L3 20l1.1-5.4a8.4 8.4 0 0 1-1.1-4.1A8.4 8.4 0 0 1 11.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg>',
+      i: '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+      e: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>',
+      b: '<span class="glyph-f">f</span>'
+    };
+    var mini = document.getElementById('miniSocials');
+    [
+      { k: 'w', href: P.w ? 'https://wa.me/' + P.w : null, label: 'WhatsApp' },
+      { k: 'i', href: P.i ? 'https://instagram.com/' + P.i : null, label: 'Instagram' },
+      { k: 'b', href: P.b ? (/^https?:\/\//i.test(P.b) ? P.b : 'https://facebook.com/' + P.b) : null, label: 'Facebook' },
+      { k: 'e', href: P.e ? 'mailto:' + P.e : null, label: 'Email' }
+    ].forEach(function (s) {
+      if (!s.href) return;
+      var a = document.createElement('a');
+      a.href = s.href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.setAttribute('aria-label', s.label);
+      a.innerHTML = GLYPH[s.k];
+      mini.appendChild(a);
+    });
+
+    // Swap into the "done" state — used by both sending and skipping. The tip
+    // button stays put and simply widens to fill the row.
+    function showLinks(skipped) {
+      document.getElementById('reviewWrap').style.display = 'none';
+      document.getElementById('reviewCol').style.display = 'none';
+      document.getElementById('skipReview').style.display = 'none';
+      document.getElementById('honesty').style.display = 'none';
+      var t = document.getElementById('thanks');
+      if (skipped) {
+        t.querySelector('.big').textContent = 'Stay in touch';
+        t.querySelector('.small').innerHTML = 'Catch you on the mountain —<br>here\'s where to find me';
+      }
+      t.style.display = 'flex';
+      showSocials();
+    }
+
+    function showSocials() {
+      var pl = document.getElementById('profileLink');
+      pl.href = 'thanks/' + location.hash;
+      pl.style.display = 'inline-block';
+      document.getElementById('miniSocials').style.display = 'none';
+
+      var links = [];
+      if (P.w) links.push({ label: 'WhatsApp', href: 'https://wa.me/' + P.w });
+      if (P.i) links.push({ label: 'Instagram', href: 'https://instagram.com/' + P.i });
+      if (P.e) links.push({ label: 'Email', href: 'mailto:' + P.e });
+      if (P.b) {
+        links.push({
+          label: 'Facebook',
+          href: /^https?:\/\//i.test(P.b) ? P.b : 'https://facebook.com/' + P.b
+        });
+      }
+      if (!links.length) return;
+      document.getElementById('socialDivider').style.display = 'flex';
+      var wrap = document.getElementById('socials');
+      wrap.innerHTML = '';
+      links.forEach(function (l) {
+        var a = document.createElement('a');
+        a.className = 'btn btn-ghost';
+        a.textContent = l.label.toUpperCase();
+        a.href = l.href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        wrap.appendChild(a);
+      });
+    }
+
+    document.getElementById('skipReview').addEventListener('click', function () {
+      showLinks(true);
+    });
+
+    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!rating || !P.f) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      document.getElementById('formErr').style.display = 'none';
+
+      fetch(P.f, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'LESSON FEEDBACK',
+          instructor: P.n,
+          resort: P.r || '',
+          rating: rating + ' / 5',
+          comment: document.getElementById('comment').value || '(none)',
+          student: document.getElementById('student').value || '(anonymous)'
+        })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('send failed');
+        showLinks(false);
+      }).catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send feedback';
+        document.getElementById('formErr').style.display = 'block';
+      });
+    });
+
+    // Lesson report request — needs the review endpoint and the opt-in flag.
+    if (P.rp && P.f) {
+      document.getElementById('reportWrap').style.display = 'block';
+
+      var sel = document.getElementById('rDay');
+      var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      for (var d = 0; d < 7; d++) {
+        var dt = new Date();
+        dt.setDate(dt.getDate() - d);
+        var iso = dt.getFullYear() + '-' +
+          ('0' + (dt.getMonth() + 1)).slice(-2) + '-' +
+          ('0' + dt.getDate()).slice(-2);
+        var label = d === 0 ? 'Today' : d === 1 ? 'Yesterday' : DAYS[dt.getDay()] + ' ' + dt.getDate();
+        var opt = document.createElement('option');
+        opt.value = iso;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      }
+
+      document.getElementById('reportOpen').addEventListener('click', function () {
+        this.style.display = 'none';
+        document.getElementById('reportForm').style.display = 'block';
+        document.getElementById('rName').focus();
+      });
+
+      document.getElementById('reportForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (document.getElementById('rGotcha').value) return;
+        var btn = document.getElementById('rSubmit');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        document.getElementById('rErr').style.display = 'none';
+
+        fetch(P.f, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'LESSON REPORT REQUEST',
+            instructor: P.n,
+            student: document.getElementById('rName').value,
+            lessonDate: sel.value,
+            lessonDay: sel.options[sel.selectedIndex].textContent,
+            email: document.getElementById('rEmail').value
+          })
+        }).then(function (r) {
+          if (!r.ok) throw new Error('send failed');
+          document.getElementById('reportForm').style.display = 'none';
+          document.getElementById('reportThanks').style.display = 'flex';
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Request my report';
+          document.getElementById('rErr').style.display = 'block';
+        });
+      });
+    }
+
+    // Tip — hidden without a link; custom label if the instructor set one.
+    if (P.t) {
+      var tipBtn = document.getElementById('tipBtn');
+      tipBtn.href = P.t;
+      tipBtn.textContent = P.tl ? P.tl : 'Tip';
+    } else {
+      document.getElementById('tipCol').style.display = 'none';
+    }
+  }
+</script>
+</body>
 </html>
